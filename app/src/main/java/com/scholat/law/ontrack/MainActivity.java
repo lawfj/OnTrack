@@ -1,24 +1,49 @@
 package com.scholat.law.ontrack;
 
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
 
-import com.amap.api.maps.AMap;
-import com.amap.api.maps.MapView;
+public class MainActivity extends Activity implements View.OnClickListener{
 
-public class MainActivity extends AppCompatActivity {
+    private Button bt1;
+    private ImageView iv1;
 
-    private MapView mapView;
-    private AMap aMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MapView mapView = (MapView) findViewById(R.id.map);//找到地图控件
-//在activity执行onCreate时执行mMapView.onCreate(savedInstanceState)，创建地图
-        mapView.onCreate(savedInstanceState);
-        AMap aMap = mapView.getMap();//初始化地图控制器对象
+        initView();
+
+
+    }
+
+    public void initView(){
+        bt1 = findViewById(R.id.button1_icon);
+        iv1 = findViewById(R.id.imageView1_map);
+
+        bt1.setOnClickListener(this);
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent(this, MapActivity.class);
+        switch (v.getId()){
+            case R.id.button1_icon:
+//                intent.putExtra("flag", "1");
+                startActivity(intent);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 }

@@ -1,15 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.amap.api.maps.MapView
-        android:id="@+id/map"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </com.amap.api.maps.MapView>
 
-</android.support.constraint.ConstraintLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/button1_icon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="头像" />
+
+        <Button
+            android:id="@+id/button2_step"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="步数" />
+
+        <Button
+            android:id="@+id/button3_record"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="时光记录" />
+
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/imageView1_map"
+        android:layout_width="155dp"
+        android:layout_height="392dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="50dp"
+        app:srcCompat="@android:color/holo_blue_light" />
+
+</RelativeLayout>
