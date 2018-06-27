@@ -1,8 +1,10 @@
 package com.scholat.law.ontrack;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.amap.api.location.AMapLocation;
@@ -54,11 +56,23 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
         settings.setMyLocationButtonEnabled(true);
         //是否可触发定位并显示定位层
         aMap.setMyLocationEnabled(true);
-
+        // 设置定位的类型为定位模式，有定位、跟随或地图根据面向方向旋转几种
+        aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);
 
         //设置定位点的图标  默认为蓝色小点
         MyLocationStyle myLocationStyle = new MyLocationStyle();
+
+
+
+//        myLocationStyle.showMyLocation(true);
+        myLocationStyle.strokeColor(Color.argb(0,0,0,0));
+        myLocationStyle.radiusFillColor(Color.argb(0,0,0,0));
+
+        myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_LOCATION_ROTATE);//连续定位、且将视角移动到地图中心点，定位点依照设备方向旋转，并且会跟随设备移动。（1秒1次定位）默认执行此种模式。
+
+        //设置完所有定位蓝点的属性之后再setMyLocationStyle
         aMap.setMyLocationStyle(myLocationStyle);
+
 
         //开始定位
         initLoc();
@@ -83,7 +97,7 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
         //设置是否强制刷新WIFI，默认强制
         mLocationClientOption.setWifiScan(true);
         //设置定位间隔  ms
-        mLocationClientOption.setInterval(2000);
+        mLocationClientOption.setInterval(4000);
 
 
         //给定客户端对象设置定位参数
@@ -103,6 +117,8 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
                 aMapLocation.getLongitude();//获取经度
                 aMapLocation.getAccuracy();//获取精确信息
 
+                Toast.makeText(getApplicationContext(), "纬度："+aMapLocation.getLatitude()+"经度："+aMapLocation.getLongitude(), Toast.LENGTH_LONG).show();
+
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 Date date = new Date(aMapLocation.getTime());
                 df.format(date);
@@ -117,6 +133,8 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
                 aMapLocation.getCityCode();//城市编码
                 aMapLocation.getAdCode();//地区编码
 
+                //定位后刷新小蓝点
+                mListener.onLocationChanged(aMapLocation);
 
                 if (isFirstLoc) {
                     //缩放级别
@@ -171,6 +189,7 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
     protected void onPause() {
         super.onPause();
         mapView.onPause();
+        mLocationClient.stopLocation();
     }
 
     /**
@@ -189,6 +208,9 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
     protected void onDestroy() {
         super.onDestroy();
         mapView.onDestroy();
+        if(null != mLocationClient){
+            mLocationClient.onDestroy();
+        }
     }
 
 }
