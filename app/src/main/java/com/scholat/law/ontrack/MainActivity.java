@@ -14,13 +14,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private Button bt2;
     private ImageView iv1;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         initView();
+
+
 
 
     }

@@ -1,8 +1,10 @@
 package com.scholat.law.ontrack;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,9 +20,21 @@ import com.amap.api.maps.MapView;
 import com.amap.api.maps.UiSettings;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.MyLocationStyle;
+import com.amap.api.maps.model.Polyline;
+import com.amap.api.maps.model.PolylineOptions;
+import com.amap.api.trace.TraceLocation;
+import com.scholat.law.ontrack.record.PathRecord;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+
+import cn.bmob.v3.Bmob;
+import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.FindListener;
+import cn.bmob.v3.listener.SaveListener;
 
 public class MapActivity extends PermissionsActivity implements LocationSource,AMapLocationListener {
 
@@ -35,6 +49,18 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
 
     //
     private boolean isFirstLoc = true;
+
+    private Polyline mpolyline;
+    private PathRecord record;
+    private long mStartTime;
+    private long mEndTime;
+    private PolylineOptions mPolyoptions, tracePolytion;
+    private List<TraceLocation> mTracelocationlist = new ArrayList<TraceLocation>();
+
+    private LocationRecord locationRecord;
+    private double longitude;//经度
+    private double latitude;//纬度
+    List<LocationRecord> locationRecords;
 
 
     @Override
@@ -77,6 +103,13 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
         //开始定位
         initLoc();
 
+
+        record = new PathRecord();
+        mStartTime = System.currentTimeMillis();
+        record.setDate(getcueDate(mStartTime));
+
+        Bmob.initialize(this, "205d8b13a2180ea307f707c0cdf62752");
+
     }
 
     //定位
@@ -113,11 +146,11 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
             if (aMapLocation.getErrorCode() == 0) {
                 //定位成功 回调信息 设置相关信息
                 aMapLocation.getLocationType();//获取定位结果来源
-                aMapLocation.getLatitude();//获取纬度
-                aMapLocation.getLongitude();//获取经度
+                latitude = aMapLocation.getLatitude();//获取纬度
+                longitude = aMapLocation.getLongitude();//获取经度
                 aMapLocation.getAccuracy();//获取精确信息
 
-                Toast.makeText(getApplicationContext(), "纬度："+aMapLocation.getLatitude()+"经度："+aMapLocation.getLongitude(), Toast.LENGTH_LONG).show();
+//                Toast.makeText(getApplicationContext(), "纬度："+aMapLocation.getLatitude()+"经度："+aMapLocation.getLongitude(), Toast.LENGTH_LONG).show();
 
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 Date date = new Date(aMapLocation.getTime());
@@ -135,6 +168,28 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
 
                 //定位后刷新小蓝点
                 mListener.onLocationChanged(aMapLocation);
+
+
+
+//                LatLng mylocation = new LatLng(aMapLocation.getLatitude(),
+//                        aMapLocation.getLongitude());
+//                aMap.moveCamera(CameraUpdateFactory.changeLatLng(mylocation));
+//                record.addpoint(aMapLocation);
+//                mPolyoptions.add(mylocation);
+//                mTracelocationlist.add(Util.parseTraceLocation(amapLocation));
+//                redrawline();
+//                if (mTracelocationlist.size() > tracesize - 1) {
+//                    trace();
+//                }
+
+
+                System.out.println("hello!");
+
+                saveLocationMsg();
+                getLocationMsg();
+
+
+
 
                 if (isFirstLoc) {
                     //缩放级别
@@ -213,4 +268,81 @@ public class MapActivity extends PermissionsActivity implements LocationSource,A
         }
     }
 
+    /**
+     * 实时轨迹画线
+     */
+    private void redrawline() {
+        if (mPolyoptions.getPoints().size() > 1) {
+            if (mpolyline != null) {
+                mpolyline.setPoints(mPolyoptions.getPoints());
+            } else {
+                mpolyline = aMap.addPolyline(mPolyoptions);
+            }
+        }
+        System.out.println(mPolyoptions.isVisible());
+//		if (mpolyline != null) {
+//			mpolyline.remove();
+//		}
+//		mPolyoptions.visible(true);
+//		mpolyline = mAMap.addPolyline(mPolyoptions);
+//			PolylineOptions newpoly = new PolylineOptions();
+//			mpolyline = mAMap.addPolyline(newpoly.addAll(mPolyoptions.getPoints()));
+//		}
+    }
+
+    @SuppressLint("SimpleDateFormat")
+    private String getcueDate(long time) {
+        SimpleDateFormat formatter = new SimpleDateFormat(
+                "yyyy-MM-dd  HH:mm:ss ");
+        Date curDate = new Date(time);
+        String date = formatter.format(curDate);
+        return date;
+    }
+
+    /**
+     * 保存经纬度数据到Bmob后台
+     */
+    public void saveLocationMsg(){
+        locationRecord = new LocationRecord();
+        locationRecord.setLatitude(latitude);
+        locationRecord.setLongitude(longitude);
+        locationRecord.save(new SaveListener<String>() {
+            @Override
+            public void done(String s, BmobException e) {
+                if(e != null){
+                    Toast.makeText(MapActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+                }else {
+                    Toast.makeText(MapActivity.this, "success", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    /**
+     * 查询Bmob经纬度信息
+     */
+    public void getLocationMsg(){
+        BmobQuery<LocationRecord> query = new BmobQuery<LocationRecord>();
+        query.addWhereNotEqualTo("longitude", "");
+        query.findObjects(new FindListener<LocationRecord>() {
+            @Override
+            public void done(List<LocationRecord> list, BmobException e) {
+                if (e != null) {
+//                    Toast.makeText(MainActivity.this, "出错啦！", Toast.LENGTH_LONG).show();
+                }else {
+                    locationRecords = list;
+                    List<LatLng> locationList = new ArrayList<LatLng>();
+                    for (int i = 1; i < locationRecords.size(); i++){
+                        LatLng latLng = new LatLng(locationRecords.get(i).getLatitude(), locationRecords.get(i).getLongitude());
+                        locationList.add(latLng);
+                    }
+                    drawTrack(locationList);
+                }
+            }
+        });
+    }
+
+    public void drawTrack(List<LatLng> locationList){
+        mapView.getMap().addPolyline(new PolylineOptions().addAll(locationList));
+    }
 }
