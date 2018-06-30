@@ -8,7 +8,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/Theme.AppCompat.NoActionBar">
         <activity android:name=".MainActivity">
         </activity>
         <activity android:name=".SplashActivity"
@@ -32,6 +32,15 @@
 
         <activity android:name=".TraceActivity">
         </activity>
+
+        <activity android:name=".Note"></activity>
+
+        <activity android:name=".AddContent"></activity>
+
+        <activity android:name=".RegisterActivity"></activity>
+
+        <activity android:name=".LoginActivity"></activity>
+
     </application>
 
     <!--允许程序打开网络套接字-->
